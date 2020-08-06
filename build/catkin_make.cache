@@ -1,2 +1,0 @@
-package
--DCATKIN_DEVEL_PREFIX=/home/bhuvan/path_planning_d2c/devel -DCMAKE_INSTALL_PREFIX=/home/bhuvan/path_planning_d2c/install -G Unix Makefiles
