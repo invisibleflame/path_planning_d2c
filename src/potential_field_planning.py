@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import rospy 
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point
-import thread 
+import thread
+from std_msgs.msg import String
 import time 
 
 # Parameters
@@ -12,7 +13,7 @@ ETA = 100.0  # repulsive potential gain
 AREA_WIDTH = 30.0  # potential area width [m] #should be 30.0
 OSCILLATIONS_DETECTION_LENGTH = 3
 show_animation = True
-pub = rospy.Publisher ('/path_planning', Point , queue_size = 10)
+pub = rospy.Publisher ('/path_planning', String , queue_size = 10)
 
 def calc_potential_field(gx, gy, ox, oy, reso, rr, sx, sy):
     minx = min(min(ox), sx, gx) - AREA_WIDTH / 2.0
@@ -55,8 +56,8 @@ def calc_repulsive_potential(x, y, ox, oy, rr):
         return 0.0
 
 def Callback_loc(data):
-    global cx 
-    global cy
+    global sx
+    global sy
     sx = 0 
     sy = 0
     sx = data.pose.pose.position.x
@@ -101,18 +102,6 @@ def get_motion_model():
               [1, 1]]
     return motion
 
-def oscillations_detection(previous_ids, ix, iy):
-    previous_ids.append((ix, iy))
-    if (len(previous_ids) > OSCILLATIONS_DETECTION_LENGTH):
-        previous_ids.popleft()
-    previous_ids_set = set()
-    for index in previous_ids:
-        if index in previous_ids_set:
-            return True
-        else:
-            previous_ids_set.add(index)
-    return False
-
 def potential_field_planning(sx, sy, gx, gy, ox, oy, reso, rr):
     pmap, minx, miny = calc_potential_field(gx, gy, ox, oy, reso, rr, sx, sy)
     d = np.hypot(sx - gx, sy - gy)
@@ -130,7 +119,7 @@ def potential_field_planning(sx, sy, gx, gy, ox, oy, reso, rr):
 
     rx, ry = [sx], [sy]
     motion = get_motion_model()
-    previous_ids = deque()
+    #previous_ids = deque()
 
     while d >= 0:
         minp = float("inf")
@@ -155,10 +144,6 @@ def potential_field_planning(sx, sy, gx, gy, ox, oy, reso, rr):
         rx.append(xp)
         ry.append(yp)
 
-        if (oscillations_detection(previous_ids, ix, iy)):
-            print("Oscillation detected at ({},{})!".format(ix, iy))
-            break
-
         if show_animation:
             plt.plot(ix, iy, ".r")
             plt.pause(0.01)
@@ -169,8 +154,10 @@ def logic():
         grid_size = 0.2  # potential grid size [m]
         robot_radius = 0.4  # robot radius [m]
         lx, ly = potential_field_planning(sx, sy, gx, gy, ox, oy, grid_size, robot_radius)
-        paths=[lx,ly]
-        pub.publish (paths)
+        path_string=""
+        for x,y in zip(lx,ly):
+            path_string += "{},{},3;".format(x,y)
+        pub.publish (path_string)
         rospy.sleep(0.08)
                 
 
