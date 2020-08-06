@@ -75,7 +75,7 @@ find_package(catkin REQUIRED COMPONENTS
  generate_messages(
    DEPENDENCIES
    geometry_msgs
-   #std_msgs
+   std_msgs
  )
 
 ################################################
