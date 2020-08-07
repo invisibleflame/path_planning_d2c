@@ -68,8 +68,8 @@ def Callback_obs(data):
     global gy 
     global ox 
     global oy
-    gx=  #add the goal x 
-    gy=  #add the goal y
+    gx=data.x  #add the goal x 
+    gy=data.y  #add the goal y
     ox = []  # obstacle x position list [m]
     oy = []  # obstacle y position list [m]
 
@@ -169,8 +169,8 @@ def main():
     print("potential_field_planning start")
     rospy.init_node ('publish_next_point', anonymous=True)
     rate = rospy.Rate(10)
-    rospy.Subscriber('/odom' , Odometry , Callback_loc)
-    rospy.Subscriber('/humanDepth', Point, Callback_obs) #select subscriber which gives goal 
+    rospy.Subscriber('/mavros/local_position/odom' , Odometry , Callback_loc)
+    rospy.Subscriber('/framegoal', Point, Callback_obs) #select subscriber which gives goal 
     thread.start_new_thread(logic,())
     rospy.spin()
            
